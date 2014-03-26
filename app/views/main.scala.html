@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>play-esapi</title>
+        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+    </head>
+    <body>
+        @helper.form(action=routes.Application.index()){
+        <input type='text' name='whatever' />
+        <input type='submit' name='submit' value='Submit' />
+        }
+    </body>
+</html>
