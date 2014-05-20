@@ -61,17 +61,24 @@
 
 
         <div class="row">
-            <div class="col-md-8 dl-horizontal">
-                ESAPI insert
-                @helper.form(action=routes.Application.add_item_esapi()){
+            <div class="col-md-4 dl-horizontal">
+                Raw insert
+                @helper.form(action=routes.Application.add_item_raw()){
                     @helper.inputText(itemForm("title"))
                 }
             </div>
 
-            <div class="col-md-8 dl-horizontal">
-                Raw insert
-                @helper.form(action=routes.Application.add_item_raw()){
+            <div class="col-md-4 dl-horizontal">
+                Play insert
+                @helper.form(action=routes.Application.add_item_play()){
                     @helper.inputText(itemForm("title"))
+                }
+            </div>
+
+            <div class="col-md-4 dl-horizontal">
+                ESAPI insert
+                @helper.form(action=routes.Application.add_item_esapi()){
+                @helper.inputText(itemForm("title"))
                 }
             </div>
         </div>
