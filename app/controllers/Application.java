@@ -19,4 +19,14 @@ public class Application extends Controller {
         }
     }
 
+    public static Result index2(){
+        DynamicForm requestData = Form.form().bindFromRequest();
+        String myname = requestData.get("whatever");
+        if(myname == null) {
+            return ok(main.render()) ;
+        } else {
+            return ok("<html><body>" + "Hello " + myname + "</body></html>").as("text/html; charset=utf-8");
+        }
+    }
+
 }
