@@ -1,21 +1,82 @@
+@(items: List[Item], itemForm: Form[Item], reflect: String)
+
 <!DOCTYPE html>
 
-<html>
+<html lang="en">
     <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>play-esapi</title>
-        <link rel="stylesheet" media="screen" href="@routes.Assets.at("stylesheets/main.css")">
+        <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
     </head>
     <body>
-	<h1>ESAPI</h1>
-        @helper.form(action=routes.Application.index()){
-        <input type='text' name='whatever' />
-        <input type='submit' name='submit' value='Submit' />
-        }
-	
-	<h1>Raw</h1>
-        @helper.form(action=routes.Application.index2()){
-        <input type='text' name='whatever' />
-        <input type='submit' name='submit' value='Submit' />
-        }
+
+    <div class="container">
+
+        <h1>Reflect</h1>
+
+        <div class="row">
+
+            <div class="col-md-4">
+                ESAPI
+                @helper.form(action=routes.Application.reflect_esapi()){
+                <input type='text' name='whatever' />
+                <input type='submit' name='submit' value='Submit' />
+
+                }
+            </div>
+
+            <div class="col-md-4">
+                Raw
+                @helper.form(action=routes.Application.reflect_raw()){
+                <input type='text' name='whatever' />
+                <input type='submit' name='submit' value='Submit' />
+                }
+            </div>
+
+            <div class="col-md-4">
+                Result
+                <kbd>@Html(reflect)</kbd>
+            </div>
+        </div>
+
+        <h1>Database</h1>
+
+        <div class="row">
+            Items from database
+            <table class="table table-bordered">
+            <tr><th>Id</th><th>Title</th></tr>
+                @for(item <- items) {
+                <tr><td>@item.getId()</td>
+                    <td>
+                    @if(item.title) {
+                            @Html(item.getTitle())
+                        }
+                    </td>
+                </tr>
+                }
+            </table>
+        </div>
+
+
+        <div class="row">
+            <div class="col-md-8 dl-horizontal">
+                ESAPI insert
+                @helper.form(action=routes.Application.add_item_esapi()){
+                    @helper.inputText(itemForm("title"))
+                }
+            </div>
+
+            <div class="col-md-8 dl-horizontal">
+                Raw insert
+                @helper.form(action=routes.Application.add_item_raw()){
+                    @helper.inputText(itemForm("title"))
+                }
+            </div>
+        </div>
+
+    </div>
+
     </body>
 </html>
