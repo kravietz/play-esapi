@@ -1,0 +1,5 @@
+#!/bin/sh
+
+export PATH="$HOME/jdk1.8.0_05/bin:$HOME/play-2.2.3:$PATH"
+export _JAVA_OPTIONS="-Xdebug -agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=8003 -javaagent:/opt/seeker/seekerHelper.jar"
+play run
