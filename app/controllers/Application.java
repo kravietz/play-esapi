@@ -4,6 +4,7 @@ import models.Item;
 import org.owasp.esapi.ESAPI;
 import org.owasp.esapi.codecs.MySQLCodec;
 import org.owasp.esapi.codecs.OracleCodec;
+import play.Logger;
 import play.data.DynamicForm;
 import play.data.Form;
 import play.db.DB;
@@ -24,7 +25,7 @@ public class Application extends Controller {
     private static Result main(String reflect) {
         emit_headers();
 
-        System.out.println("main reflect=" + reflect);
+        Logger.debug("main: reflect=%s", reflect);
 
         return ok(main.render(Item.find.all(), Form.form(Item.class), reflect))   ;
     }
@@ -37,7 +38,7 @@ public class Application extends Controller {
         DynamicForm requestData = Form.form().bindFromRequest();
         String sanitized = ESAPI.encoder().encodeForHTML(requestData.get("whatever"));
 
-        System.out.println("reflect_esapi sanitized=" + sanitized);
+        Logger.debug("reflect_esapi: sanitized=%s", sanitized);
 
         if(sanitized == null) {
             return index();
@@ -50,7 +51,7 @@ public class Application extends Controller {
         DynamicForm requestData = Form.form().bindFromRequest();
         String myname = requestData.get("whatever");
 
-        System.out.println("reflect_raw myname=" + myname);
+        Logger.debug("reflect_raw: myname=%s", myname);
 
         if(myname == null) {
             return index();
@@ -65,10 +66,12 @@ public class Application extends Controller {
      */
     public static Result add_item_play() {
 
-          Form<Item> itemForm = Form.form(Item.class);
-          Item item = itemForm.bindFromRequest().get();
-        System.out.println("add_item_play item=" + item);
-          item.save();
+        Form<Item> itemForm = Form.form(Item.class);
+        Item item = itemForm.bindFromRequest().get();
+
+        Logger.debug("add_item_play: item=%s", item);
+
+        item.save();
         return redirect("/");
     }
 
@@ -78,16 +81,16 @@ public class Application extends Controller {
      */
     private static Result raw_insert(String title) {
         Connection conn = DB.getConnection();
+        Logger.debug("raw_insert: conn=%s", conn);
 
         if(conn == null) {
             return internalServerError("No database connection");
         }
-        System.out.println("conn=" + conn);
 
         Statement statement = null;
 
         String query = "INSERT INTO item (title) VALUES ('" + title + "')";
-        System.out.println("query=" + query);
+        Logger.debug("raw_insert: query=%s", query);
 
         try {
             statement = conn.createStatement();
@@ -119,7 +122,7 @@ public class Application extends Controller {
         Item item = itemForm.bindFromRequest().get();
         String title = item.getTitle();
 
-        System.out.println("add_item_raw title=" + title);
+        Logger.debug("add_item_raw: title=%s", title);
 
         // insert the title to database
         return raw_insert(title);
@@ -131,7 +134,7 @@ public class Application extends Controller {
         Item item = itemForm.bindFromRequest().get();
         String title = item.getTitle();
 
-        System.out.println("add_item_esapi title=" + title);
+        Logger.debug("add_item_esapi: title=%s", title);
 
         String metadata = null;
         Connection conn = null;
@@ -151,9 +154,8 @@ public class Application extends Controller {
                 }
         }
 
-        System.out.println("metadata=" + metadata + " sqlite=" + metadata.indexOf("sqlite") + " bad=" + metadata.indexOf("aaaa"));
-
         String sanitized;
+
         if (metadata.indexOf("sqlite") > 0) {
             // SQLite uses the same escaping as Oracle
             sanitized = ESAPI.encoder().encodeForSQL(new OracleCodec(), title);
@@ -165,7 +167,7 @@ public class Application extends Controller {
             return internalServerError("Unsupported database " + metadata);
         }
 
-        System.out.println("sanitized=" + sanitized);
+        Logger.debug("add_item_esapi: sanitized=%s", sanitized);
 
         // insert the title to database
         return raw_insert(sanitized);
@@ -173,7 +175,7 @@ public class Application extends Controller {
 
     public static Redirect redirect(String url) {
 
-        System.out.println("redirect url=" + url);
+        Logger.debug("redirect: url=%s", url);
         return new Redirect(302, url);
     }
 
