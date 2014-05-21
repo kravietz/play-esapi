@@ -15,6 +15,7 @@ import views.html.main;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Random;
 
 public class Application extends Controller {
     private static void emit_headers() {
@@ -83,13 +84,16 @@ public class Application extends Controller {
         Connection conn = DB.getConnection();
         Logger.debug("raw_insert: conn={}", conn);
 
+
         if(conn == null) {
             return internalServerError("No database connection");
         }
 
         Statement statement = null;
 
-        String query = "INSERT INTO item (title) VALUES ('" + title + "')";
+        // avoid stupid existing id lookups
+        Random rand = new Random();
+        String query = "INSERT INTO item (id, title) VALUES ('" + rand.nextLong() + "','" + title + "')";
         Logger.debug("raw_insert: query={}", query);
 
         try {
