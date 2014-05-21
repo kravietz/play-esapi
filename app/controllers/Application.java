@@ -25,7 +25,7 @@ public class Application extends Controller {
     private static Result main(String reflect) {
         emit_headers();
 
-        Logger.debug("main: reflect=%s", reflect);
+        Logger.debug("main: reflect={}", reflect);
 
         return ok(main.render(Item.find.all(), Form.form(Item.class), reflect))   ;
     }
@@ -38,7 +38,7 @@ public class Application extends Controller {
         DynamicForm requestData = Form.form().bindFromRequest();
         String sanitized = ESAPI.encoder().encodeForHTML(requestData.get("whatever"));
 
-        Logger.debug("reflect_esapi: sanitized=%s", sanitized);
+        Logger.debug("reflect_esapi: sanitized={}", sanitized);
 
         if(sanitized == null) {
             return index();
@@ -51,7 +51,7 @@ public class Application extends Controller {
         DynamicForm requestData = Form.form().bindFromRequest();
         String myname = requestData.get("whatever");
 
-        Logger.debug("reflect_raw: myname=%s", myname);
+        Logger.debug("reflect_raw: myname={}", myname);
 
         if(myname == null) {
             return index();
@@ -69,7 +69,7 @@ public class Application extends Controller {
         Form<Item> itemForm = Form.form(Item.class);
         Item item = itemForm.bindFromRequest().get();
 
-        Logger.debug("add_item_play: item=%s", item);
+        Logger.debug("add_item_play: item={}", item);
 
         item.save();
         return redirect("/");
@@ -81,7 +81,7 @@ public class Application extends Controller {
      */
     private static Result raw_insert(String title) {
         Connection conn = DB.getConnection();
-        Logger.debug("raw_insert: conn=%s", conn);
+        Logger.debug("raw_insert: conn={}", conn);
 
         if(conn == null) {
             return internalServerError("No database connection");
@@ -90,7 +90,7 @@ public class Application extends Controller {
         Statement statement = null;
 
         String query = "INSERT INTO item (title) VALUES ('" + title + "')";
-        Logger.debug("raw_insert: query=%s", query);
+        Logger.debug("raw_insert: query={}", query);
 
         try {
             statement = conn.createStatement();
@@ -122,7 +122,7 @@ public class Application extends Controller {
         Item item = itemForm.bindFromRequest().get();
         String title = item.getTitle();
 
-        Logger.debug("add_item_raw: title=%s", title);
+        Logger.debug("add_item_raw: title={}", title);
 
         // insert the title to database
         return raw_insert(title);
@@ -134,7 +134,7 @@ public class Application extends Controller {
         Item item = itemForm.bindFromRequest().get();
         String title = item.getTitle();
 
-        Logger.debug("add_item_esapi: title=%s", title);
+        Logger.debug("add_item_esapi: title={}", title);
 
         String metadata = null;
         Connection conn = null;
@@ -156,6 +156,8 @@ public class Application extends Controller {
 
         String sanitized;
 
+        Logger.debug("add_item_esapi: SQL engine={}", metadata);
+
         if (metadata.indexOf("sqlite") > 0) {
             // SQLite uses the same escaping as Oracle
             sanitized = ESAPI.encoder().encodeForSQL(new OracleCodec(), title);
@@ -167,7 +169,7 @@ public class Application extends Controller {
             return internalServerError("Unsupported database " + metadata);
         }
 
-        Logger.debug("add_item_esapi: sanitized=%s", sanitized);
+        Logger.debug("add_item_esapi: sanitized={}", sanitized);
 
         // insert the title to database
         return raw_insert(sanitized);
@@ -175,7 +177,7 @@ public class Application extends Controller {
 
     public static Redirect redirect(String url) {
 
-        Logger.debug("redirect: url=%s", url);
+        Logger.debug("redirect: url={}", url);
         return new Redirect(302, url);
     }
 
