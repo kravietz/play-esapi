@@ -165,6 +165,8 @@ public class Application extends Controller {
             sanitized = ESAPI.encoder().encodeForSQL(new MySQLCodec(0), title);
         } else if (metadata.indexOf("oracle") > 0) {
             sanitized = ESAPI.encoder().encodeForSQL(new OracleCodec(), title);
+        } else if (metadata.indexOf("h2") > 0) {
+            sanitized = ESAPI.encoder().encodeForSQL(new OracleCodec(), title);
         } else {
             return internalServerError("Unsupported database " + metadata);
         }
