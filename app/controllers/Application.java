@@ -18,11 +18,19 @@ import java.sql.Statement;
 import java.util.Random;
 
 public class Application extends Controller {
+    /*
+    Ensure our XSS is not blocked by the browser's built-in XSS filter. Also ensure
+    pages are not cached.
+     */
     private static void emit_headers() {
         response().setHeader("X-XSS-Protection", "0");
         response().setHeader("Cache-Control", "must-revalidate,no-store,no-cache");
     }
 
+    /*
+    Render the main page with list of items and reflect parameter that may trigger
+    XSS if it's not empty.
+     */
     private static Result main(String reflect) {
         emit_headers();
 
@@ -31,10 +39,16 @@ public class Application extends Controller {
         return ok(main.render(Item.find.all(), Form.form(Item.class), reflect))   ;
     }
 
+    /*
+    Display initial page with no XSS.
+     */
     public static Result index(){
         return main("");
     }
 
+    /*
+    Process XSS parameter attemp. Pass through ESAPI encoder - should be not vulnerable.
+     */
     public static Result reflect_esapi(){
         DynamicForm requestData = Form.form().bindFromRequest();
         String sanitized = ESAPI.encoder().encodeForHTML(requestData.get("whatever"));
@@ -48,6 +62,9 @@ public class Application extends Controller {
         }
     }
 
+    /*
+    Process XSS parameter attemp. Pass through ESAPI encoder - should be vulnerable.
+     */
     public static Result reflect_raw(){
         DynamicForm requestData = Form.form().bindFromRequest();
         String myname = requestData.get("whatever");
@@ -77,8 +94,9 @@ public class Application extends Controller {
     }
 
     /*
-    Insert data into SQL table using string concantendated query.
-    Vulnerable to all kinds of SQL injection attacks.
+    Insert data into SQL table using string concatenated SQL query.
+    Vulnerable to all kinds of SQL injection attacks. Not used directly,
+    called by other methods here.
      */
     private static Result raw_insert(String title) {
         Connection conn = DB.getConnection();
@@ -118,7 +136,7 @@ public class Application extends Controller {
 
     /*
     Insert data using raw SQL insert with no escaping or validation.
-    Vulns: SQLi, stored XSS
+    Vulnerable to SQLi and stored XSS.
      */
     public static Result add_item_raw() {
         // create Item object only to extract the raw title field from it
@@ -132,6 +150,10 @@ public class Application extends Controller {
         return raw_insert(title);
     }
 
+    /*
+    Insert data using raw SQL insert but pass through ESAPI encoder first.
+    Not vulnerable to SQLi, but still vulnerable to stored XSS.
+     */
     public static Result add_item_esapi() {
         // create Item object only to extract the raw title field from it
         Form<Item> itemForm = Form.form(Item.class);
@@ -181,6 +203,9 @@ public class Application extends Controller {
         return raw_insert(sanitized);
     }
 
+    /*
+    Return a HTTP redirect.
+     */
     public static Redirect redirect(String url) {
 
         Logger.debug("redirect: url={}", url);
