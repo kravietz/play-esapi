@@ -204,12 +204,20 @@ public class Application extends Controller {
     }
 
     /*
-    Return a HTTP redirect.
+    Return a HTTP redirect. Used internally only.
      */
     public static Redirect redirect(String url) {
 
         Logger.debug("redirect: url={}", url);
         return new Redirect(302, url);
+    }
+
+    /*
+    Wrapper that can be used in routes. Delivers an exquisite open redirect vulnerability.
+     */
+    public static Result get_redirect(String url) {
+        Logger.debug("get_redirect: url={}", url);
+        return redirect(url);
     }
 
 }

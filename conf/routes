@@ -9,6 +9,7 @@ POST    /reflect/raw           controllers.Application.reflect_raw()
 POST    /db/esapi              controllers.Application.add_item_esapi()
 POST    /db/raw                controllers.Application.add_item_raw()
 POST    /db/play               controllers.Application.add_item_play()
+GET     /redir                 controllers.Application.get_redirect(url:String)
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
