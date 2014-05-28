@@ -7,18 +7,6 @@ import javax.persistence.*;
 @Entity
 public class Item extends Model {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", nullable = false)
-    public Long id;
-
-    @Column(name = "title")
-    public String title = "";
-
-    public String getTitle() { return title; }
-
-    public Long getId() { return id; }
-
     public static Finder<Long, Item> find;
 
     static {
@@ -26,5 +14,21 @@ public class Item extends Model {
                 Long.class, Item.class
         );
     }
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id", nullable = false)
+    public Long id;
+    @Column(name = "title")
+    public String title = "";
+
+    public String getTitle() {
+        return title;
+    }
+
+    public Long getId() {
+        return id;
+    }
 
 }
+
+

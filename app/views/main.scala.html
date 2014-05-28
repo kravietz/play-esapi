@@ -1,4 +1,4 @@
-@(items: List[Item], itemForm: Form[Item], reflect: String)
+@(items: List[Item], secretitems: List[SecretItem], secretItemForm: Form[SecretItem], itemForm: Form[Item], reflect: String)
 
 <!DOCTYPE html>
 
@@ -47,24 +47,51 @@
             </div>
         </div>
 
-        <h1>Database</h1>
+        <h1>Mass assignment</h1>
 
         <div class="row">
-            Items from database
+            <div class="col-md-4 dl-horizontal">
+                Dumb insert
+                @helper.form(action=routes.Application.add_secretitem_dumb()){
+                @helper.inputText(secretItemForm("title"))
+                }
+            </div>
+
+            <div class="col-md-4 dl-horizontal">
+                Protected insert
+                @helper.form(action=routes.Application.add_secretitem_protected()){
+                @helper.inputText(secretItemForm("title"))
+                }
+            </div>
+        </div>
+
+        <div class="row">
+            SecretItems from database
             <table class="table table-bordered">
-            <tr><th>Id</th><th>Title</th></tr>
-                @for(item <- items) {
-                <tr><td>@item.getId()</td>
+                <tr>
+                    <th>Id</th>
+                    <th>Title</th>
+                    <th>Is admin?</th>
+                </tr>
+                @for(item <- secretitems) {
+                <tr>
                     <td>
-                    @if(item.title) {
-                            @Html(item.getTitle())
+                        @item.getId()
+                    </td>
+                    <td>
+                        @if(item.title) {
+                        @item.getTitle()
                         }
+                    </td>
+                    <td>
+                        @item.getAdmin()
                     </td>
                 </tr>
                 }
             </table>
         </div>
 
+        <h1>SQL injection</h1>
 
         <div class="row">
             <div class="col-md-4 dl-horizontal">
@@ -87,6 +114,26 @@
                 @helper.inputText(itemForm("title"))
                 }
             </div>
+        </div>
+
+        <div class="row">
+            Items from database
+            <table class="table table-bordered">
+                <tr>
+                    <th>Id</th>
+                    <th>Title</th>
+                </tr>
+                @for(item <- items) {
+                <tr>
+                    <td>@item.getId()</td>
+                    <td>
+                        @if(item.title) {
+                        @Html(item.getTitle())
+                        }
+                    </td>
+                </tr>
+                }
+            </table>
         </div>
 
     </div>

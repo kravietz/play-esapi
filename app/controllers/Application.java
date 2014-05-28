@@ -1,6 +1,7 @@
 package controllers;
 
 import models.Item;
+import models.SecretItem;
 import org.owasp.esapi.ESAPI;
 import org.owasp.esapi.codecs.MySQLCodec;
 import org.owasp.esapi.codecs.OracleCodec;
@@ -36,7 +37,7 @@ public class Application extends Controller {
 
         Logger.debug("main: reflect={}", reflect);
 
-        return ok(main.render(Item.find.all(), Form.form(Item.class), reflect))   ;
+        return ok(main.render(Item.find.all(), SecretItem.find.all(), Form.form(SecretItem.class), Form.form(Item.class), reflect));
     }
 
     /*
@@ -88,6 +89,32 @@ public class Application extends Controller {
         Item item = itemForm.bindFromRequest().get();
 
         Logger.debug("add_item_play: item={}", item);
+
+        item.save();
+        return redirect("/");
+    }
+
+    /*
+   Use native Play object binding that should be immune to SQL injection.
+   Vulns: SQLi, stored XSS
+    */
+    public static Result add_secretitem_dumb() {
+
+        Form<SecretItem> itemForm = Form.form(SecretItem.class);
+        SecretItem item = itemForm.bindFromRequest().get();
+
+        Logger.debug("add_secretitem_play: secretitem={}", item);
+
+        item.save();
+        return redirect("/");
+    }
+
+    public static Result add_secretitem_protected() {
+
+        Form<SecretItem> itemForm = Form.form(SecretItem.class);
+        SecretItem item = itemForm.bindFromRequest("title").get();
+
+        Logger.debug("add_secretitem_play: secretitem={}", item);
 
         item.save();
         return redirect("/");
