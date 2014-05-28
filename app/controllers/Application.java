@@ -20,8 +20,8 @@ import java.util.Random;
 
 public class Application extends Controller {
     /*
-    Ensure our XSS is not blocked by the browser's built-in XSS filter. Also ensure
-    pages are not cached.
+    Ensure our XSS is not blocked by the browser's built-in XSS filter
+    and that pages are not cached.
      */
     private static void emit_headers() {
         response().setHeader("X-XSS-Protection", "0");
@@ -48,7 +48,28 @@ public class Application extends Controller {
     }
 
     /*
-    Process XSS parameter attemp. Pass through ESAPI encoder - should be not vulnerable.
+    Extract a string parameter from GET request and pass to the template
+    where it will be reflected with no sanitisation. Vulnerable to reflected
+    XSS.
+
+    @see <a href="http://cwe.mitre.org/data/definitions/79.html">CWE-79</a>
+     */
+    public static Result reflect_raw() {
+        DynamicForm requestData = Form.form().bindFromRequest();
+        String myname = requestData.get("whatever");
+
+        Logger.debug("reflect_raw: myname={}", myname);
+
+        if (myname == null) {
+            return index();
+        } else {
+            return main(myname);
+        }
+    }
+
+    /*
+    Extract a string parameter from GET request and pass to the template, but
+    first sanitise using OWASP ESAPI encoder. Not vulnerable to XSS.
      */
     public static Result reflect_esapi(){
         DynamicForm requestData = Form.form().bindFromRequest();
@@ -64,39 +85,13 @@ public class Application extends Controller {
     }
 
     /*
-    Process XSS parameter attemp. Pass through ESAPI encoder - should be vulnerable.
-     */
-    public static Result reflect_raw(){
-        DynamicForm requestData = Form.form().bindFromRequest();
-        String myname = requestData.get("whatever");
+   Create an SecretItem object with native Play binding that is
+   not vulnerable to SQL injection, but is vulnerable to mass
+   assignment. It's *not* vulnerable to XSS because the respective
+   template that displays this object is protected by native Play
+   escaping (by not using the @Html() method).
 
-        Logger.debug("reflect_raw: myname={}", myname);
-
-        if(myname == null) {
-            return index();
-        } else {
-            return main(myname);
-        }
-    }
-
-    /*
-    Use native Play object binding that should be immune to SQL injection.
-    Vulns: SQLi, stored XSS
-     */
-    public static Result add_item_play() {
-
-        Form<Item> itemForm = Form.form(Item.class);
-        Item item = itemForm.bindFromRequest().get();
-
-        Logger.debug("add_item_play: item={}", item);
-
-        item.save();
-        return redirect("/");
-    }
-
-    /*
-   Use native Play object binding that should be immune to SQL injection.
-   Vulns: SQLi, stored XSS
+   @see <a href="http://cwe.mitre.org/data/definitions/915.html">CWE-915</a>
     */
     public static Result add_secretitem_dumb() {
 
@@ -109,6 +104,11 @@ public class Application extends Controller {
         return redirect("/");
     }
 
+    /*
+    Protected version of the {@link #add_secretitem_dumb() add_secretitem_dumb}
+    method that explicitly lists model fields that are allowed during the binding.
+    In this case it's just one field - title.
+     */
     public static Result add_secretitem_protected() {
 
         Form<SecretItem> itemForm = Form.form(SecretItem.class);
@@ -121,9 +121,11 @@ public class Application extends Controller {
     }
 
     /*
-    Insert data into SQL table using string concatenated SQL query.
-    Vulnerable to all kinds of SQL injection attacks. Not used directly,
-    called by other methods here.
+    Insert data into SQL table using query contatenated from string parts,
+    including unsanitised user input. Vulnerable to all kinds of SQL injection
+    attacks. Not used directly, called by other methods here.
+
+    @see <a href="http://cwe.mitre.org/data/definitions/89.html">CWE-89</a>
      */
     private static Result raw_insert(String title) {
         Connection conn = DB.getConnection();
@@ -164,6 +166,9 @@ public class Application extends Controller {
     /*
     Insert data using raw SQL insert with no escaping or validation.
     Vulnerable to SQLi and stored XSS.
+
+    @see <a href="http://cwe.mitre.org/data/definitions/89.html">CWE-89</a>
+    @see <a href="http://cwe.mitre.org/data/definitions/79.html">CWE-79</a>
      */
     public static Result add_item_raw() {
         // create Item object only to extract the raw title field from it
@@ -180,6 +185,8 @@ public class Application extends Controller {
     /*
     Insert data using raw SQL insert but pass through ESAPI encoder first.
     Not vulnerable to SQLi, but still vulnerable to stored XSS.
+
+    @see <a href="http://cwe.mitre.org/data/definitions/79.html">CWE-79</a>
      */
     public static Result add_item_esapi() {
         // create Item object only to extract the raw title field from it
@@ -212,7 +219,7 @@ public class Application extends Controller {
         Logger.debug("add_item_esapi: SQL engine={}", metadata);
 
         if (metadata.indexOf("sqlite") > 0) {
-            // SQLite uses the same escaping as Oracle
+            // SQLite uses the same escaping scheme as Oracle
             sanitized = ESAPI.encoder().encodeForSQL(new OracleCodec(), title);
         } else if (metadata.indexOf("mysql") > 0) {
             sanitized = ESAPI.encoder().encodeForSQL(new MySQLCodec(0), title);
@@ -231,6 +238,22 @@ public class Application extends Controller {
     }
 
     /*
+    Create Item object using native Play binding that is not
+    vulnerable to SQL injection. It is still vulnerable to
+    mass assignment, but it doesn't really matter with Item objects.
+     */
+    public static Result add_item_play() {
+
+        Form<Item> itemForm = Form.form(Item.class);
+        Item item = itemForm.bindFromRequest().get();
+
+        Logger.debug("add_item_play: item={}", item);
+
+        item.save();
+        return redirect("/");
+    }
+
+    /*
     Return a HTTP redirect. Used internally only.
      */
     public static Redirect redirect(String url) {
@@ -241,6 +264,8 @@ public class Application extends Controller {
 
     /*
     Wrapper that can be used in routes. Delivers an exquisite open redirect vulnerability.
+
+    @see <a href="http://cwe.mitre.org/data/definitions/601.html">CWE-601</a>
      */
     public static Result get_redirect(String url) {
         Logger.debug("get_redirect: url={}", url);
