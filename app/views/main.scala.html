@@ -9,6 +9,9 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>play-esapi</title>
         <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+        <style>
+            #
+        </style>
     </head>
     <body>
 
@@ -16,18 +19,27 @@
 
         <h1>Redirect</h1>
 
-        <div class="row">
+        <div class="row bg-info">
             <div class="col-md-8">
-                Please click this <a href="/redir?url=/">dumb redirect link</a>.
+                Please, really click on this <a href="/redir?url=/">dumb redirect link</a>. It will take you
+                back to the main page (incidentally being the same page that you're currently viewing)
+                so you won't really see any difference. But it doesn't really matter as the whole purpose of this
+                paragraph is to actually make some use of the redirect controller, even if it's deadly dumb and useless.
             </div>
         </div>
 
         <h1>Reflect</h1>
 
-        <div class="row">
+        <div class="row bg-warning">
+            This part will simply echo whatever you type in the black field one the right
+            <bigger>☞</bigger>
+        </div>
+
+        <div class="row bg-warning">
 
             <div class="col-md-4">
-                ESAPI
+                This input goes through <a href="http://ipsec.pl/2014/using-esapi-play-framework.html" target="_blank">OWASP
+                ESAPI</a>:
                 @helper.form(action=routes.Application.reflect_esapi()){
                 <input type='text' name='whatever' />
                 <input type='submit' name='submit' value='Submit' />
@@ -36,7 +48,7 @@
             </div>
 
             <div class="col-md-4">
-                Raw
+                This input does not go through any sanitizer:
                 @helper.form(action=routes.Application.reflect_raw()){
                 <input type='text' name='whatever' />
                 <input type='submit' name='submit' value='Submit' />
@@ -44,37 +56,46 @@
             </div>
 
             <div class="col-md-4">
-                Result
-                <kbd>@Html(reflect)</kbd>
+                Result<br>
+                <kbd style="padding: 5px">@Html(reflect)</kbd>
             </div>
         </div>
 
         <h1>Mass assignment</h1>
 
-        <div class="row">
+
+        <div class="row bg-danger">
+            This form allows you to insert objects into database. These objects have
+            two fields (<tt>title</tt> and <tt>isAdmin</tt>) but you can only
+            edit the first one here.
+        </div>
+
+        <div class="row bg-danger">
             <div class="col-md-4 dl-horizontal">
-                Dumb insert
+                This input field is <strong>not</strong> protected:
                 @helper.form(action=routes.Application.add_secretitem_dumb()){
                 @helper.inputText(secretItemForm("title"))
                 }
             </div>
 
             <div class="col-md-4 dl-horizontal">
-                Protected insert
+                This input <strong>is</strong> protected:
                 @helper.form(action=routes.Application.add_secretitem_protected()){
                 @helper.inputText(secretItemForm("title"))
                 }
             </div>
         </div>
 
-        <div class="row">
-            SecretItems from database
-            <table class="table table-bordered">
+        <div class="row bg-danger">
+            <table class="table table-bordered table-striped">
+                <caption>This is what we currently have in the database</caption>
+                <thead>
                 <tr>
                     <th>Id</th>
                     <th>Title</th>
                     <th>Is admin?</th>
                 </tr>
+                <tbody>
                 @for(item <- secretitems) {
                 <tr>
                     <td>
@@ -95,36 +116,45 @@
 
         <h1>SQL injection</h1>
 
-        <div class="row">
+        <div class="row bg-warning">
+            This part allows to add objects into the database and its purpose is to open
+            SQL injection vulnerability.
+        </div>
+
+        <div class="row bg-warning">
             <div class="col-md-4 dl-horizontal">
-                Raw insert
+                This one uses raw SQL query:
                 @helper.form(action=routes.Application.add_item_raw()){
                     @helper.inputText(itemForm("title"))
                 }
             </div>
 
             <div class="col-md-4 dl-horizontal">
-                Play insert
+                This one uses Play ORM:
                 @helper.form(action=routes.Application.add_item_play()){
                     @helper.inputText(itemForm("title"))
                 }
             </div>
 
             <div class="col-md-4 dl-horizontal">
-                ESAPI insert
+                This one uses raw SQL but first sanitizes input using <a
+                    href="http://ipsec.pl/2014/using-esapi-play-framework.html" target="_blank">OWASP ESAPI</a>:
                 @helper.form(action=routes.Application.add_item_esapi()){
                 @helper.inputText(itemForm("title"))
                 }
             </div>
         </div>
 
-        <div class="row">
-            Items from database
-            <table class="table table-bordered">
+        <div class="row bg-warning">
+
+            <table class="table table-bordered table-striped">
+                <caption>This is what we currently have in the database</caption>
+                <thead>
                 <tr>
                     <th>Id</th>
                     <th>Title</th>
                 </tr>
+                <tbody>
                 @for(item <- items) {
                 <tr>
                     <td>@item.getId()</td>
@@ -138,7 +168,15 @@
             </table>
         </div>
 
+        <div class="row">
+            <footer class="text-center">
+                Source code for this application is
+                at GitHub in <a href="https://github.com/kravietz/play-esapi" target="_blank">play-esapi</a> repo.
+            </footer>
+        </div>
+
     </div>
+
 
     </body>
 </html>

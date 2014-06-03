@@ -20,11 +20,17 @@ import java.util.Random;
 
 public class Application extends Controller {
     /*
-    Ensure our XSS is not blocked by the browser's built-in XSS filter
-    and that pages are not cached.
+    Ensure our XSS is not blocked by the browser's built-in XSS filter.
+    Obviously, on production websites you should do exactly the opposite
+    @see <a href="http://ipsec.pl/http/2014/security-related-http-headers-wild.html">HTTP security headers</a>
+    The second setHeader() disables caching, which makes tester's life
+    a bit easier.
      */
     private static void emit_headers() {
+        // disable browser XSS filter to make it more vulnerable
+        // in production you definitely set this header to "1"
         response().setHeader("X-XSS-Protection", "0");
+        // disable browser caching
         response().setHeader("Cache-Control", "must-revalidate,no-store,no-cache");
     }
 
