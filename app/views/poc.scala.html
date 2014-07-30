@@ -12,17 +12,26 @@
 
 <h1>Protected API</h1>
 
+<p>The protected API should respond with "missing CSRF token" error.</p>
+
 <p>XHR POST: <span id="ppost"></span></p>
 
 <p>XHR GET: <span id="pget"> </span></p>
 
 <h1>Unprotected API</h1>
 
+<p>The unprotected API should respond with "secret data" message.</p>
+
 <p>XHR POST: <span id="upost"></span></p>
 
 <p>XHR GET: <span id="uget"></span></p>
 
 <h1>Cookies</h1>
+
+<p>List of cookies available to this script. Under standard CSRF scenario exploit
+    is running outside of the original website's domain (e.g. from email or 3rd party website).
+    As result, this script should <strong>not</strong> have access to the session and CSRF
+    token cookies, so the entry below should be empty.</p>
 
 <p>Cookies: <span id="cookies"></span></p>
 
