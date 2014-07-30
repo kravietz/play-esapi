@@ -30,6 +30,10 @@ import java.util.Random;
 import java.util.UUID;
 
 public class Application extends Controller {
+    // cookie and header use XSRF name because this is AngularJS default
+    final static String csrf_cookie_name = "XSRF-TOKEN";
+    final static String csrf_header_name = "X-XSRF-TOKEN";
+
     /*
     Ensure our XSS is not blocked by the browser's built-in XSS filter.
     Obviously, on production websites you should do exactly the opposite
@@ -60,7 +64,7 @@ public class Application extends Controller {
     /*
     Display initial page with no XSS.
      */
-    public static Result index(){
+    public static Result index() {
         return main("");
     }
 
@@ -77,7 +81,6 @@ public class Application extends Controller {
         }
         return ok(transactions.render(sess));
     }
-
 
     /*
     Generate CSRF token from session identifier using application.secret.
@@ -112,8 +115,10 @@ public class Application extends Controller {
     public static Result transactions_login() {
         response().discardCookie("error");
         String sess = UUID.randomUUID().toString();
-        response().setCookie("session", sess);
-        response().setCookie("XSRF-TOKEN", xsrf_token(sess));
+        // session cookie has httpOnly flag set
+        response().setCookie("session", sess, null, "/transactions", null, false, true);
+        // CSRF token must not have httpOnly flag set
+        response().setCookie(csrf_cookie_name, xsrf_token(sess), null, "/transactions", null, false, false);
         return redirect("/transactions/");
     }
 
@@ -124,7 +129,7 @@ public class Application extends Controller {
         response().discardCookie("session");
         response().discardCookie("secret");
         response().discardCookie("error");
-        response().discardCookie("XSRF-TOKEN");
+        response().discardCookie(csrf_cookie_name);
         return redirect("/transactions/");
     }
 
@@ -159,9 +164,9 @@ public class Application extends Controller {
             return ok(Json.newObject().put("data", "not authenticated"));
         }
 
-        if (request().headers().containsKey("X-XSRF-TOKEN")) {
+        if (request().headers().containsKey(csrf_header_name)) {
             // check if CSRF token was sent at all
-            token = request().getHeader("X-XSRF-TOKEN");
+            token = request().getHeader(csrf_header_name);
         } else {
             return ok(Json.newObject().put("data", "missing XSRF token"));
         }
