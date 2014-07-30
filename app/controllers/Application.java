@@ -113,7 +113,6 @@ public class Application extends Controller {
     but it's not necessary here.
      */
     public static Result transactions_login() {
-        response().discardCookie("error");
         String sess = UUID.randomUUID().toString();
         // session cookie has httpOnly flag set
         response().setCookie("session", sess, null, "/transactions", null, false, true);
@@ -127,8 +126,6 @@ public class Application extends Controller {
      */
     public static Result transactions_logout() {
         response().discardCookie("session");
-        response().discardCookie("secret");
-        response().discardCookie("error");
         response().discardCookie(csrf_cookie_name);
         return redirect("/transactions/");
     }
@@ -233,13 +230,13 @@ public class Application extends Controller {
     Extract a string parameter from GET request and pass to the template, but
     first sanitise using OWASP ESAPI encoder. Not vulnerable to XSS.
      */
-    public static Result reflect_esapi(){
+    public static Result reflect_esapi() {
         DynamicForm requestData = Form.form().bindFromRequest();
         String sanitized = ESAPI.encoder().encodeForHTML(requestData.get("whatever"));
 
         Logger.debug("reflect_esapi: sanitized={}", sanitized);
 
-        if(sanitized == null) {
+        if (sanitized == null) {
             return index();
         } else {
             return main(sanitized);
@@ -294,7 +291,7 @@ public class Application extends Controller {
         Logger.debug("raw_insert: conn={}", conn);
 
 
-        if(conn == null) {
+        if (conn == null) {
             return internalServerError("No database connection");
         }
 
