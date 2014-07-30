@@ -125,8 +125,8 @@ public class Application extends Controller {
     Delete any session related cookies.
      */
     public static Result transactions_logout() {
-        response().discardCookie("session");
-        response().discardCookie(csrf_cookie_name);
+        response().discardCookie("session", "/transactions");
+        response().discardCookie(csrf_cookie_name, "/transactions");
         return redirect("/transactions/");
     }
 
