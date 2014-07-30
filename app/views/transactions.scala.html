@@ -1,0 +1,96 @@
+@(sess: String)
+<!DOCTYPE html>
+<html lang="en" ng-app="myApp">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>play-esapi</title>
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <script language="JavaScript" src="/assets/javascripts/angular.js"></script>
+    <script language="JavaScript" src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.21/angular-cookies.js"></script>
+    <script language="JavaScript">
+    angular.module('myApp', ['ngCookies']);
+    function CookieCtrl($scope, $cookies, $http) {
+
+      // fill cookies
+      console.log('cookies=' + $cookies);
+      $scope.cookieValue = $cookies;
+
+      // issue XHR
+      $http.post('/transactions/secret').success(function(data) {
+        $scope.postData = data;
+        console.log('post=' + data);
+      });
+
+      $http.get('/transactions/secret').success(function(data) {
+        $scope.getData = data;
+        console.log('get=' + data);
+      });
+
+    }
+
+    </script>
+
+</head>
+
+<body ng-controller="CookieCtrl">
+
+<div class="container">
+
+    <div class="row bg-warning">
+        <div class="col-md-8 col-md-offset-5">
+            @helper.form(action=routes.Application.transactions_login()){
+            <input type='submit' name='login' value='Login'/>
+            }
+        </div>
+        <div class="col-md-8 col-md-offset-6">
+            @helper.form(action=routes.Application.transactions_logout()){
+            <input type='submit' name='logout' value='Logout'/>
+            }
+        </div>
+        <div class="col-md-8 col-md-offset-7">
+            @helper.form(action=routes.Application.transactions_poc()){
+            <input type='submit' name='poc' value='PoC'/>
+            }
+        </div>
+    </div>
+
+    <h1>Secret data</h1>
+
+    <div class="row bg-success">
+        <div class="col-md-4">
+            XHR POST: {{postData}}
+        </div>
+        <div class="col-md-4">
+            XHR GET: {{getData}}
+        </div>
+    </div>
+
+    <h1>Play</h1>
+
+    <div class="row bg-info">
+        <p>Session: @sess
+    </div>
+
+    <h1>Angular</h1>
+
+    <div class="row bg-info">
+        Cookie Value: {{cookieValue}}
+    </div>
+
+    <h1>JavaScript</h1>
+
+    <div class="row bg-info">
+        <div id="cookies">
+
+        </div>
+
+        <script language="JavaScript">
+    document.getElementById("cookies").innerText = document.cookie;
+
+        </script>
+
+</body>
+</html>

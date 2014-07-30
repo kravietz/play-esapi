@@ -2,21 +2,32 @@ package controllers;
 
 import models.Item;
 import models.SecretItem;
+import org.apache.commons.codec.binary.Hex;
 import org.owasp.esapi.ESAPI;
 import org.owasp.esapi.codecs.MySQLCodec;
 import org.owasp.esapi.codecs.OracleCodec;
 import play.Logger;
+import play.Play;
 import play.data.DynamicForm;
 import play.data.Form;
 import play.db.DB;
+import play.libs.Json;
 import play.mvc.Controller;
 import play.mvc.Result;
 import views.html.main;
+import views.html.poc;
+import views.html.transactions;
 
+import javax.crypto.Mac;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Random;
+import java.util.UUID;
 
 public class Application extends Controller {
     /*
@@ -51,6 +62,146 @@ public class Application extends Controller {
      */
     public static Result index(){
         return main("");
+    }
+
+    /*
+     Display main page for the "transactional" part of the
+     website.
+     */
+    public static Result transactions_index() {
+        String sess = null;
+        try {
+            sess = request().cookies().get("session").value();
+        } catch (Exception e) {
+            sess = "(NONE)";
+        }
+        return ok(transactions.render(sess));
+    }
+
+
+    /*
+    Generate CSRF token from session identifier using application.secret.
+     */
+    private static String xsrf_token(String session) {
+        Mac mac = null;
+        try {
+            mac = Mac.getInstance("HmacSHA256");
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        byte[] secretByte = Play.application().configuration().getString("application.secret").getBytes();
+        byte[] sessionByte = session.getBytes();
+        SecretKey secret = new SecretKeySpec(secretByte, "HMACSHA256");
+
+        assert mac != null;
+        try {
+            mac.init(secret);
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+        }
+
+        byte[] doFinal = mac.doFinal(sessionByte);
+        return String.valueOf(Hex.encodeHex(doFinal));
+    }
+
+    /*
+    Emulate log-in process - this just sets a random session
+    cookie and related CSRF token. There is no real authentication,
+    but it's not necessary here.
+     */
+    public static Result transactions_login() {
+        response().discardCookie("error");
+        String sess = UUID.randomUUID().toString();
+        response().setCookie("session", sess);
+        response().setCookie("XSRF-TOKEN", xsrf_token(sess));
+        return redirect("/transactions/");
+    }
+
+    /*
+    Delete any session related cookies.
+     */
+    public static Result transactions_logout() {
+        response().discardCookie("session");
+        response().discardCookie("secret");
+        response().discardCookie("error");
+        response().discardCookie("XSRF-TOKEN");
+        return redirect("/transactions/");
+    }
+
+    /*
+     Allow download of CSRF proof of concept HTML file. The file needs to be
+     downloaded so that it doesn't run from the same origin as our application.
+     */
+    public static Result transactions_poc() {
+        response().setHeader("Content-Disposition", "attachment; filename=\"poc.html\"");
+        return ok(poc.render());
+    }
+
+
+    /*
+    This API call returns a piece of sensitive data in response to a XMLHttpRequest
+    call from the client. Authentication is required and this method implements
+    an CSRF safeguard based on Cookie-to-Header technique supported by AngularJS.
+    CORS is opened so that the first line of defence is opened.
+     */
+    public static Result transactions_secret() {
+        String sess = null;
+        String token = null;
+
+        // open CORS
+        response().setHeader("Access-Control-Allow-Origin", "null");
+        response().setHeader("Access-Control-Allow-Credentials", "true");
+
+        try {
+            // check if user is authenticated
+            sess = request().cookies().get("session").value();
+        } catch (Exception e) {
+            return ok(Json.newObject().put("data", "not authenticated"));
+        }
+
+        if (request().headers().containsKey("X-XSRF-TOKEN")) {
+            // check if CSRF token was sent at all
+            token = request().getHeader("X-XSRF-TOKEN");
+        } else {
+            return ok(Json.newObject().put("data", "missing XSRF token"));
+        }
+
+        // validate CSRF token and send response
+        String valid_token = xsrf_token(sess);
+        if (token.equals(valid_token)) {
+            return ok(Json.newObject().put("data", "secret value"));
+        } else {
+            return ok(Json.newObject().put("data", "invalid CSRF token"));
+        }
+
+    }
+
+    /*
+    This API call returns a piece of sensitive data in response to a XMLHttpRequest
+    call from the client. The user must be authenticated, but no CSRF controls are
+    implemented in this insecure method. Additionally, CORS is opened so that
+    XMLHttpRequest exploit can use POST method.
+
+    @see <a href="http://cwe.mitre.org/data/definitions/352.html">CWE-352</a>
+     */
+    public static Result transactions_nosecret() {
+        String sess = null;
+
+        // open CORS
+        response().setHeader("Access-Control-Allow-Origin", "null");
+        response().setHeader("Access-Control-Allow-Credentials", "true");
+
+        try {
+            // check if user is authenticated
+            sess = request().cookies().get("session").value();
+        } catch (Exception e) {
+            return ok(Json.newObject().put("data", "not authenticated"));
+        }
+
+        // send response
+        return ok(Json.newObject().put("data", "secret value"));
+
+
     }
 
     /*

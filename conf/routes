@@ -13,5 +13,22 @@ GET     /redir                 controllers.Application.get_redirect(url:String)
 GET     /secret/dumb           controllers.Application.add_secretitem_dumb()
 GET     /secret/prot           controllers.Application.add_secretitem_protected()
 
+# transactional part
+POST    /transactions/login   controllers.Application.transactions_login()
+POST    /transactions/logout  controllers.Application.transactions_logout()
+
+# safe api calls
+GET     /transactions/secret  controllers.Application.transactions_secret()
+POST    /transactions/secret  controllers.Application.transactions_secret()
+OPTIONS /transactions/secret  controllers.Application.transactions_secret()
+
+# vulnerable API calls
+GET     /transactions/nosecret  controllers.Application.transactions_nosecret()
+POST    /transactions/nosecret  controllers.Application.transactions_nosecret()
+OPTIONS /transactions/nosecret  controllers.Application.transactions_nosecret()
+
+POST    /transactions/poc     controllers.Application.transactions_poc()
+GET     /transactions/        controllers.Application.transactions_index()
+
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
